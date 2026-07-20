@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-*: initial;
+  --color-white: #fff;
+  --color-black: #130E0F;
+  --color-cmyk-pink: #EF15BF;
+  --color-cmyk-yellow: #EBEF15;
+  --color-cmyk-blue: #15AEEF;
+  --color-cmyk-tangerine: #EF9815;
+  --color-cmyk-purple: #7515EF;
+  --color-cmyk-green: #15EFAE;
+  --color-cmyk-red: #EF1563;
+
+  --color-light-200: #D5D2DC;
+  --color-light-300: #BCB9C2;
+  --color-light-400: #807694;
+  --color-light-500: #878292;
+
+  --color-dark-100: #221B32;
+  --color-dark-200: #2B223F;
+  --color-dark-300: #382C51;
+}
+
+:root {
+  color-scheme: dark light;
+}
+
+.btn {
+  @apply py-1.5 px-4 font-semibold rounded-full cursor-pointer flex gap-2 items-center disabled:cursor-not-allowed disabled:opacity-80;
+}
