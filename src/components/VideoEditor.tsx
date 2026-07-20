@@ -6,11 +6,18 @@ import {
   Conversion,
   Input,
   Mp4OutputFormat,
-  Output
+  Output,
+  QUALITY_VERY_LOW,
+  QUALITY_LOW,
+  QUALITY_MEDIUM,
+  QUALITY_HIGH,
+  Quality,
 } from 'mediabunny';
 import React, { useCallback, useRef, useState } from 'react';
 import { formatDuration } from '../utils/toDuration';
 import { downloadFile } from '../utils/downloadFile';
+
+type QualityLevel = 'Very low' | 'Low' | 'Medium' | 'High' | 'Default';
 
 export default function VideoEditor() {
   const [file, setFile] = useState<File | null>(null);
@@ -19,6 +26,12 @@ export default function VideoEditor() {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [trimRange, setTrimRange] = useState<[number, number]>([0, 0]);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [[videoWidth, videoHeight], setVideoDimensions] = useState<[number, number]>([0, 0])
+  const [scale, setScale] = useState<number>(1)
+  const [quality, setQuality] = useState<QualityLevel>('Default')
+
+  const scaledWidth = Math.round(videoWidth * scale)
+  const scaledHeight = Math.round(videoHeight * scale)
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -34,6 +47,12 @@ export default function VideoEditor() {
   const handleLoadedMetadata = useCallback(() => {
     if (videoRef.current) {
       const vidDuration = videoRef.current.duration;
+
+      setVideoDimensions([
+        videoRef.current.videoWidth,
+        videoRef.current.videoHeight
+      ])
+
       setDuration(vidDuration);
       setTrimRange([0, vidDuration]);
     }
@@ -118,13 +137,26 @@ export default function VideoEditor() {
 
       const trimStart = trimRange[0]
       const trimEnd = trimRange[1]
+      const bitrate = getBitrateForQuality(quality)
+
       const conversion = await Conversion.init({
         input,
         output,
+        tracks: 'primary',
+        video: {
+          fit: 'contain',
+          width: scaledWidth,
+          height: scaledHeight,
+          bitrate,
+        },
+        audio: {
+          bitrate,
+        },
         trim: {
           start: trimStart,
           end: trimEnd,
-        }
+        },
+        tags: {},
       });
 
       await conversion.execute();
@@ -134,7 +166,7 @@ export default function VideoEditor() {
       const processedUrl = URL.createObjectURL(processedBlob);
 
       const timestamp = `${formatDuration(trimStart * 1000)} to ${formatDuration(trimEnd * 1000)}`
-      const filename = `${file.name} -- ${timestamp}.mp4`;
+      const filename = `${file.name} - ${scaledWidth}x${scaledHeight} - ${quality} - ${timestamp}.mp4`;
 
       downloadFile({
         linkToFile: processedUrl,
@@ -145,10 +177,16 @@ export default function VideoEditor() {
     } finally {
       setIsProcessing(false);
     }
-  }, [file, trimRange]);
+  }, [file, trimRange, scaledHeight, scaledWidth, quality]);
 
   return (
     <div className="flex flex-col gap-4 py-6 max-w-2xl mx-auto">
+      {!videoUrl ? (
+        <p className="text-center text-sm font-medium text-dark-100/80 dark:text-white/70">
+          Pick a video to trim and compress
+        </p>
+      ) : null}
+
       <input
         type="file"
         accept="video/*"
@@ -232,15 +270,119 @@ export default function VideoEditor() {
         </div>
       )}
 
+      {videoUrl ? (
+        <div className='grid gap-4 grid-cols-3'>
+
+          {/* Video size */}
+          <div>
+            <strong className="font-bold">Original</strong>: {videoWidth} x {videoHeight}
+          </div>
+
+          <div className="flex flex-col space-y-1 text-center">
+            <input
+              type="range"
+              min="0.1"
+              max="1.0"
+              step="0.1"
+              value={scale}
+              onChange={(e) => setScale(Number(e.target.value))}
+              className="w-full h-2 bg-light-200 dark:bg-dark-200 rounded-lg appearance-none cursor-pointer accent-cmyk-pink"
+            />
+
+            <span className="font-medium text-dark-100/80 dark:text-white/70">
+              {Math.round(scale * 100)}%
+            </span>
+          </div>
+
+          <div className="text-right">
+            <strong className="font-bold">Scaled</strong>: <span className={scale < 1 ? 'text-cmyk-blue dark:text-cmyk-yellow' : ''}>{scaledWidth} x {scaledHeight}</span>
+          </div>
+
+          {/* Quality */}
+          <div>
+            <strong className="font-bold">
+              Quality
+            </strong>
+          </div>
+
+          <div className="col-span-2">
+            <QualityPicker onChange={setQuality} selected={quality} />
+          </div>
+        </div>
+      ) : null}
+
       <div className='flex justify-center'>
         <button
           onClick={processVideo}
           disabled={isProcessing}
           className="btn bg-cmyk-pink text-white disabled:bg-dark-300"
         >
-          {isProcessing ? 'Processing...' : 'Export & Compress'}
+          <VideoIcon /> {isProcessing ? 'Processing...' : 'Process Video'}
         </button>
       </div>
+    </div>
+  );
+}
+
+export const VideoIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="2" y="4" width="20" height="16" rx="2" />
+    <path d="M10 9l5 3-5 3V9z" fill="currentColor" />
+  </svg>
+);
+
+
+const getBitrateForQuality = (quality: QualityLevel): Quality | undefined => {
+  switch (quality) {
+    case 'Very low':
+      return QUALITY_VERY_LOW
+    case 'Low':
+      return QUALITY_LOW
+    case 'Medium':
+      return QUALITY_MEDIUM
+    case 'High':
+      return QUALITY_HIGH
+    case 'Default':
+  }
+}
+
+const qualityOptions: QualityLevel[] = ['Very low', 'Low', 'Medium', 'High', 'Default'];
+
+export function QualityPicker({
+  selected,
+  onChange
+}: {
+  selected: QualityLevel;
+  onChange: (level: QualityLevel) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 justify-end">
+      {qualityOptions.map((level) => {
+        const isSelected = selected === level;
+        return (
+          <button
+            key={level}
+            onClick={() => onChange(level)}
+            className={`
+              px-3 py-1 cursor-pointer text-sm font-medium rounded-full transition-colors duration-200 border
+              ${isSelected
+                ? 'bg-cmyk-purple text-white border-cmyk-purple dark:bg-cmyk-blue dark:border-cmyk-blue'
+                : 'text-dark-300 border-dark-300 dark:text-light-300 dark:border-light-300 hover:text-cmyk-purple hover:border-cmyk-purple dark:hover:text-cmyk-blue dark:hover:border-cmyk-blue'
+              }
+            `}
+          >
+            {level}
+          </button>
+        );
+      })}
     </div>
   );
 }
