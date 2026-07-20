@@ -1,0 +1,15 @@
+{
+  "name": "video trimrrr",
+  "short_name": "trimrrr",
+  "display": "standalone",
+  "start_url": "/index.html",
+  "description": "A simple video trimming and compressing web app",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "prefer_related_applications": false
+}
