@@ -19,6 +19,8 @@ import { downloadFile } from '../utils/downloadFile';
 
 type QualityLevel = 'Very low' | 'Low' | 'Medium' | 'High' | 'Default';
 
+type EncoderPreference = 'Hardware' | 'Software' | 'No preference'
+
 export default function VideoEditor() {
   const [file, setFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -29,6 +31,7 @@ export default function VideoEditor() {
   const [[videoWidth, videoHeight], setVideoDimensions] = useState<[number, number]>([0, 0])
   const [scale, setScale] = useState<number>(1)
   const [quality, setQuality] = useState<QualityLevel>('Default')
+  const [encoder, setEncoder] = useState<EncoderPreference>('Hardware')
 
   const scaledWidth = Math.round(videoWidth * scale)
   const scaledHeight = Math.round(videoHeight * scale)
@@ -138,6 +141,7 @@ export default function VideoEditor() {
       const trimStart = trimRange[0]
       const trimEnd = trimRange[1]
       const bitrate = getBitrateForQuality(quality)
+      const hardwareAcceleration = getHardwareAcceleration(encoder)
 
       const conversion = await Conversion.init({
         input,
@@ -147,6 +151,7 @@ export default function VideoEditor() {
           fit: 'contain',
           width: scaledWidth,
           height: scaledHeight,
+          hardwareAcceleration,
           bitrate,
         },
         audio: {
@@ -177,7 +182,7 @@ export default function VideoEditor() {
     } finally {
       setIsProcessing(false);
     }
-  }, [file, trimRange, scaledHeight, scaledWidth, quality]);
+  }, [file, trimRange, scaledHeight, scaledWidth, quality, encoder]);
 
   return (
     <div className="flex flex-col gap-4 py-6 max-w-2xl mx-auto">
@@ -308,6 +313,15 @@ export default function VideoEditor() {
           <div className="col-span-2">
             <QualityPicker onChange={setQuality} selected={quality} />
           </div>
+
+          {/* Hardware acceleration */}
+          <div>
+            <strong className="font-bold">Encoder</strong>
+          </div>
+
+          <div className="col-span-2">
+            <EncoderPreferencePicker onChange={setEncoder} selected={encoder} />
+          </div>
         </div>
       ) : null}
 
@@ -366,6 +380,52 @@ export function QualityPicker({
   return (
     <div className="flex flex-wrap gap-2 justify-end">
       {qualityOptions.map((level) => {
+        const isSelected = selected === level;
+        return (
+          <button
+            key={level}
+            onClick={() => onChange(level)}
+            className={`
+              px-3 py-1 cursor-pointer text-sm font-medium rounded-full transition-colors duration-200 border
+              ${isSelected
+                ? 'bg-cmyk-purple text-white border-cmyk-purple dark:bg-cmyk-blue dark:border-cmyk-blue'
+                : 'text-dark-300 border-dark-300 dark:text-light-300 dark:border-light-300 hover:text-cmyk-purple hover:border-cmyk-purple dark:hover:text-cmyk-blue dark:hover:border-cmyk-blue'
+              }
+            `}
+          >
+            {level}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+
+const getHardwareAcceleration = (pref: EncoderPreference):  "no-preference" | "prefer-hardware" | "prefer-software" | undefined => {
+  switch (pref) {
+    case 'Hardware':
+      return 'prefer-hardware'
+    case 'Software':
+      return 'prefer-software'
+    case 'No preference':
+      return undefined
+  }
+}
+
+
+const encoderPreferenceOptions: EncoderPreference[] = ['Software', 'Hardware']
+
+export function EncoderPreferencePicker({
+  selected,
+  onChange
+}: {
+  selected: EncoderPreference;
+  onChange: (level: EncoderPreference) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 justify-end">
+      {encoderPreferenceOptions.map((level) => {
         const isSelected = selected === level;
         return (
           <button

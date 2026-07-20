@@ -1,34 +1,19 @@
-# React + TypeScript + Vite
+# 📺 trimrrr
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+🌐🔗 https://trimrrr.pages.dev
 
-Currently, two official plugins are available:
+**trimrrr** is a simple web app for resizing and compressing videos.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+## Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- Video files are processed in the browser using the [WebCodecs API](https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API).
+- Drag and drop interface to adjust the start and end times of the video
+- Scale the size of the video by percentage
+- Adjust the quality of the audio and video bitrate between some presets (default, high, medium, low, very low)
+- Choose between hardware-accelerated encoding (recommended) and software encoding
 
-Note: This will impact Vite dev & build performances.
 
-## Expanding the Oxlint configuration
+![](./screenshot-dark.png)
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+![](./screenshot-light.png)
