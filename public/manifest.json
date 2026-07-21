@@ -6,9 +6,19 @@
   "description": "A simple video trimming and compressing web app",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "trimrrr-icon.svg",
+      "type": "image/svg",
+      "sizes": "any"
+    },
+    {
+      "src": "trimrrr-icon.png",
       "type": "image/png",
       "sizes": "512x512"
+    },
+    {
+      "src": "trimrrr-icon@2x.png",
+      "type": "image/png",
+      "sizes": "1024x1024"
     }
   ],
   "prefer_related_applications": false

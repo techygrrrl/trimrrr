@@ -17,6 +17,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { formatDuration } from '../utils/toDuration';
 import { downloadFile } from '../utils/downloadFile';
 import { toStableFile } from '../utils/toStableFile';
+import { IconVideo } from './icons';
 
 type QualityLevel = 'Very low' | 'Low' | 'Medium' | 'High' | 'Default';
 
@@ -353,28 +354,12 @@ export default function VideoEditor() {
           disabled={isProcessing}
           className="btn bg-cmyk-pink text-white disabled:bg-dark-300"
         >
-          <VideoIcon /> {isProcessing ? 'Processing...' : 'Process Video'}
+          <IconVideo /> {isProcessing ? 'Processing...' : 'Process Video'}
         </button>
       </div>
     </div>
   );
 }
-
-export const VideoIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect x="2" y="4" width="20" height="16" rx="2" />
-    <path d="M10 9l5 3-5 3V9z" fill="currentColor" />
-  </svg>
-);
-
 
 const getBitrateForQuality = (quality: QualityLevel): Quality | undefined => {
   switch (quality) {
