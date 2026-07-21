@@ -33,6 +33,7 @@ export default function VideoEditor() {
   const [scale, setScale] = useState<number>(1)
   const [quality, setQuality] = useState<QualityLevel>('Default')
   const [encoder, setEncoder] = useState<EncoderPreference>('Hardware')
+  const [shouldRemoveAudio, setShouldRemoveAudio] = useState<boolean>(false)
 
   const scaledWidth = Math.round(videoWidth * scale)
   const scaledHeight = Math.round(videoHeight * scale)
@@ -157,6 +158,7 @@ export default function VideoEditor() {
           bitrate,
         },
         audio: {
+          discard: shouldRemoveAudio,
           bitrate,
         },
         trim: {
@@ -172,8 +174,9 @@ export default function VideoEditor() {
       const processedBlob = new Blob([buffer], { type: 'video/mp4' });
       const processedUrl = URL.createObjectURL(processedBlob);
 
+      const audioMeta = shouldRemoveAudio ? ' - No Audio - ' : ''
       const timestamp = `${formatDuration(trimStart * 1000)} to ${formatDuration(trimEnd * 1000)}`
-      const filename = `${file.name} - ${scaledWidth}x${scaledHeight} - ${quality} - ${timestamp}.mp4`;
+      const filename = `${file.name} - ${scaledWidth}x${scaledHeight} - ${quality} - ${timestamp}${audioMeta}.mp4`;
 
       downloadFile({
         linkToFile: processedUrl,
@@ -184,7 +187,7 @@ export default function VideoEditor() {
     } finally {
       setIsProcessing(false);
     }
-  }, [file, trimRange, scaledHeight, scaledWidth, quality, encoder]);
+  }, [file, trimRange, scaledHeight, scaledWidth, quality, encoder, shouldRemoveAudio]);
 
   return (
     <div className="flex flex-col gap-4 py-6 max-w-2xl mx-auto">
@@ -282,7 +285,7 @@ export default function VideoEditor() {
 
           {/* Video size */}
           <div>
-            <strong className="font-bold">Original</strong>: {videoWidth} x {videoHeight}
+            <strong className="font-bold">Original</strong>: <span className="whitespace-nowrap">{videoWidth} x {videoHeight}</span>
           </div>
 
           <div className="flex flex-col space-y-1 text-center">
@@ -302,7 +305,9 @@ export default function VideoEditor() {
           </div>
 
           <div className="text-right">
-            <strong className="font-bold">Scaled</strong>: <span className={scale < 1 ? 'text-cmyk-blue dark:text-cmyk-yellow' : ''}>{scaledWidth} x {scaledHeight}</span>
+            <strong className="font-bold">Scaled</strong>: <span className={`whitespace-nowrap ${scale < 1 ? 'text-cmyk-blue dark:text-cmyk-yellow' : ''}`}>
+              {scaledWidth} x {scaledHeight}
+            </span>
           </div>
 
           {/* Quality */}
@@ -323,6 +328,21 @@ export default function VideoEditor() {
 
           <div className="col-span-2">
             <EncoderPreferencePicker onChange={setEncoder} selected={encoder} />
+          </div>
+
+          <div>
+            <strong className="font-bold">Remove audio?</strong>
+          </div>
+
+          <div className="flex w-full justify-end col-span-2">
+            <label className="flex gap-2 whitespace-nowrap items-center">
+              <input
+                type="checkbox"
+                onChange={(e) => {
+                  setShouldRemoveAudio(e.target.checked)
+                }} />
+              <span className="font-medium">Yes, remove audio</span>
+            </label>
           </div>
         </div>
       ) : null}
@@ -404,7 +424,7 @@ export function QualityPicker({
 }
 
 
-const getHardwareAcceleration = (pref: EncoderPreference):  "no-preference" | "prefer-hardware" | "prefer-software" | undefined => {
+const getHardwareAcceleration = (pref: EncoderPreference): "no-preference" | "prefer-hardware" | "prefer-software" | undefined => {
   switch (pref) {
     case 'Hardware':
       return 'prefer-hardware'
