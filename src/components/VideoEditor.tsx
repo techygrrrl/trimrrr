@@ -331,7 +331,7 @@ export default function VideoEditor() {
           </div>
 
           <div>
-            <strong className="font-bold">Remove audio?</strong>
+            <strong className="font-bold whitespace-nowrap">Remove audio?</strong>
           </div>
 
           <div className="flex w-full justify-end col-span-2">
