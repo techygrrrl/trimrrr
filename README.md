@@ -1,15 +1,28 @@
-# 📺 trimrrr
+<h1 align="center">trimrrr</h1>
+<p align="center">
+  <img src="public/trimrrr-icon.png" width="120" style="display: inline-block; width: 120px" />
+</p>
+<p align="center">
+  <strong>trimrrr</strong> is a simple web app for trimming, resizing, and compressing videos.
+</p>
+<p align="center">
+  🌐🔗 app: <a href="https://trimrrr.pages.dev"><strong>trimrrr.pages.dev</strong></a>
+</p>
+<p align="center">
+  by <a href="https://techygrrrl.stream">techygrrrl</a>
+</p>
 
-🌐🔗 https://trimrrr.pages.dev
+---
 
-**trimrrr** is a simple web app for trimming, resizing, and compressing videos.
-
-**trimmrrr** runs exclusively in the browser and uses web APIs to process the videos so videos never leave your browser.
-
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Changelog](#changelog)
+  - [2026-07-21 – 🔇 Remove audio + 🐛 bug fixes](#2026-07-21---remove-audio---bug-fixes)
+  - [2026-07-20 – 🚀 Initial release!](#2026-07-20---initial-release)
 
 ## Features
 
-- Video files are processed in the browser using the [WebCodecs API](https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API)
+- Video files are processed in the browser using web APIs (e.g. the [WebCodecs API](https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API)) so videos never leave your browser
 - Drag and drop interface to adjust the start and end times of the video
 - Drag and drop a video onto the file area or click the "Choose file" button to pick a video
 - Scale the size of the video by percentage and see the target resolution
@@ -44,3 +57,19 @@ On Windows, dark mode:
 On Windows, dark mode:
 
 ![](./screenshot-light.png)
+
+## Changelog
+
+### 2026-07-21 – 🔇 Remove audio + 🐛 bug fixes
+
+- Bug fixes for Android
+- Layout improvements
+- Feature: Remove audio
+- Update branding and documentation
+
+### 2026-07-20 – 🚀 Initial release!
+
+- Initial release!
+    - Scaling the video
+    - Changing the quality (bitrate)
+    - Choosing an encoder
