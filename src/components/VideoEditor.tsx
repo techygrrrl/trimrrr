@@ -16,6 +16,7 @@ import {
 import React, { useCallback, useRef, useState } from 'react';
 import { formatDuration } from '../utils/toDuration';
 import { downloadFile } from '../utils/downloadFile';
+import { toStableFile } from '../utils/toStableFile';
 
 type QualityLevel = 'Very low' | 'Low' | 'Medium' | 'High' | 'Default';
 
@@ -38,12 +39,13 @@ export default function VideoEditor() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleFileSelect = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files?.[0];
     if (selected) {
-      setFile(selected);
+      const stableFile = await toStableFile(selected)
+      setFile(stableFile)
       if (videoUrl) URL.revokeObjectURL(videoUrl);
-      setVideoUrl(URL.createObjectURL(selected));
+      setVideoUrl(URL.createObjectURL(stableFile));
     }
   }, [videoUrl])
 
