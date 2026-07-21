@@ -27,6 +27,10 @@
     - iOS &rarr; Safari
 - Completely free, no tracking, no ads
 
+To read more about how this was built and my motivations behind it, you can read this blog post: https://blog.techygrrrl.stream/i-made-a-video-editor-with-mediabunny-a-library-that-ai-thinks-doesnt-exist
+
+## Screenshots
+
 On macOS:
 
 ![](./screenshot-tetris-mac.png)
