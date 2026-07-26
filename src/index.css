@@ -27,5 +27,5 @@
 }
 
 .btn {
-  @apply py-1.5 px-4 font-semibold rounded-full cursor-pointer flex gap-2 items-center disabled:cursor-not-allowed disabled:opacity-80;
+  @apply py-1.5 px-4 font-semibold rounded-full cursor-pointer flex gap-2 items-center disabled:cursor-not-allowed disabled:opacity-50;
 }

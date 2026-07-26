@@ -34,6 +34,7 @@ export default function VideoEditor() {
   const [scale, setScale] = useState<number>(1)
   const [quality, setQuality] = useState<QualityLevel>('Default')
   const [encoder, setEncoder] = useState<EncoderPreference>('Hardware')
+  const [filenameInput, setFilenameInput] = useState<string>('')
   const [shouldRemoveAudio, setShouldRemoveAudio] = useState<boolean>(false)
 
   const scaledWidth = Math.round(videoWidth * scale)
@@ -177,7 +178,7 @@ export default function VideoEditor() {
 
       const audioMeta = shouldRemoveAudio ? ' - No Audio - ' : ''
       const timestamp = `${formatDuration(trimStart * 1000)} to ${formatDuration(trimEnd * 1000)}`
-      const filename = `${file.name} - ${scaledWidth}x${scaledHeight} - ${quality} - ${timestamp}${audioMeta}.mp4`;
+      const filename = `${filenameInput || file.name} - ${scaledWidth}x${scaledHeight} ${quality === 'Default' ? '' : `- ${quality} - `}${timestamp}${audioMeta}.mp4`;
 
       downloadFile({
         linkToFile: processedUrl,
@@ -188,7 +189,16 @@ export default function VideoEditor() {
     } finally {
       setIsProcessing(false);
     }
-  }, [file, trimRange, scaledHeight, scaledWidth, quality, encoder, shouldRemoveAudio]);
+  }, [
+    file,
+    trimRange,
+    scaledHeight,
+    scaledWidth,
+    quality,
+    encoder,
+    shouldRemoveAudio,
+    filenameInput,
+  ]);
 
   return (
     <div className="flex flex-col gap-4 py-6 max-w-2xl mx-auto">
@@ -348,11 +358,21 @@ export default function VideoEditor() {
         </div>
       ) : null}
 
-      <div className='flex justify-center'>
+      <div className='flex gap-4 justify-center'>
+        <input
+          type="text"
+          placeholder="Filename"
+          className="border-2 rounded-full px-5 py-2 text-inherit grow border-light-200 dark:border-dark-300 outline-0 focus:border-cmyk-pink"
+          value={filenameInput}
+          onChange={(e) => {
+            setFilenameInput(e.target.value)
+          }}
+        />
+
         <button
           onClick={processVideo}
-          disabled={isProcessing}
-          className="btn bg-cmyk-pink text-white disabled:bg-dark-300"
+          disabled={isProcessing || !videoUrl}
+          className="btn bg-cmyk-pink text-white"
         >
           <IconVideo /> {isProcessing ? 'Processing...' : 'Process Video'}
         </button>
