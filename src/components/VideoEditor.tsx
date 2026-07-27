@@ -358,7 +358,11 @@ export default function VideoEditor() {
         </div>
       ) : null}
 
-      <div className='flex gap-4 justify-center'>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+        }} className='flex gap-4 justify-center'
+      >
         <input
           type="text"
           placeholder="Filename"
@@ -370,13 +374,14 @@ export default function VideoEditor() {
         />
 
         <button
+          type="submit"
           onClick={processVideo}
           disabled={isProcessing || !videoUrl}
           className="btn bg-cmyk-pink text-white"
         >
           <IconVideo /> {isProcessing ? 'Processing...' : 'Process Video'}
         </button>
-      </div>
+      </form>
     </div>
   );
 }
