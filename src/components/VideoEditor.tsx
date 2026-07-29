@@ -12,19 +12,27 @@ import {
   QUALITY_MEDIUM,
   QUALITY_HIGH,
   Quality,
+  type Rotation,
+  type ConversionOptions,
 } from 'mediabunny';
 import React, { useCallback, useRef, useState } from 'react';
 import { formatDuration } from '../utils/toDuration';
 import { downloadFile } from '../utils/downloadFile';
 import { toStableFile } from '../utils/toStableFile';
 import { IconVideo } from './icons';
+import { classNames } from '../utils/classNames';
 
 type QualityLevel = 'Very low' | 'Low' | 'Medium' | 'High' | 'Default';
 
 type EncoderPreference = 'Hardware' | 'Software' | 'No preference'
 
+type RotationOption = '0deg' | '90deg' | '180deg' | '270deg'
+
+type Orientation = 'landscape' | 'portrait'
+
 export default function VideoEditor() {
   const [file, setFile] = useState<File | null>(null);
+  const [orientation, setOrientation] = useState<Orientation>('landscape') // original video orientation
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -34,6 +42,7 @@ export default function VideoEditor() {
   const [scale, setScale] = useState<number>(1)
   const [quality, setQuality] = useState<QualityLevel>('Default')
   const [encoder, setEncoder] = useState<EncoderPreference>('Hardware')
+  const [rotation, setRotation] = useState<RotationOption>('0deg')
   const [filenameInput, setFilenameInput] = useState<string>('')
   const [shouldRemoveAudio, setShouldRemoveAudio] = useState<boolean>(false)
 
@@ -53,17 +62,24 @@ export default function VideoEditor() {
   }, [videoUrl])
 
   const handleLoadedMetadata = useCallback(() => {
-    if (videoRef.current) {
-      const vidDuration = videoRef.current.duration;
+    const video = videoRef.current
+    if (!video) return
 
-      setVideoDimensions([
-        videoRef.current.videoWidth,
-        videoRef.current.videoHeight
-      ])
+    const vidDuration = video.duration;
 
-      setDuration(vidDuration);
-      setTrimRange([0, vidDuration]);
+    setVideoDimensions([
+      video.videoWidth,
+      video.videoHeight
+    ])
+
+    if (video.videoWidth > video.videoHeight) {
+      setOrientation('landscape')
+    } else {
+      setOrientation('portrait')
     }
+
+    setDuration(vidDuration);
+    setTrimRange([0, vidDuration]);
   }, [])
 
   const handleTimeUpdate = useCallback(() => {
@@ -148,16 +164,21 @@ export default function VideoEditor() {
       const bitrate = getBitrateForQuality(quality)
       const hardwareAcceleration = getHardwareAcceleration(encoder)
 
-      const conversion = await Conversion.init({
+      const mbRotate: Rotation = Number(rotation.replace('deg', '')) as Rotation
+
+      const isRotated = mbRotate === 90 || mbRotate === 270
+
+      const options: ConversionOptions = {
         input,
         output,
         tracks: 'primary',
         video: {
           fit: 'contain',
-          width: scaledWidth,
-          height: scaledHeight,
+          width: isRotated ? scaledHeight : scaledWidth,
+          height: isRotated ? scaledWidth : scaledHeight,
           hardwareAcceleration,
           bitrate,
+          rotate: mbRotate,
         },
         audio: {
           discard: shouldRemoveAudio,
@@ -168,7 +189,8 @@ export default function VideoEditor() {
           end: trimEnd,
         },
         tags: {},
-      });
+      }
+      const conversion = await Conversion.init(options);
 
       await conversion.execute();
 
@@ -198,6 +220,7 @@ export default function VideoEditor() {
     encoder,
     shouldRemoveAudio,
     filenameInput,
+    rotation,
   ]);
 
   return (
@@ -217,14 +240,35 @@ export default function VideoEditor() {
 
       {videoUrl && (
         <div className="flex flex-col gap-4">
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            controls
-            onLoadedMetadata={handleLoadedMetadata}
-            onTimeUpdate={handleTimeUpdate}
-            className="w-full"
-          />
+          <div
+            className={classNames('grid place-content-center', {
+              'py-15': orientation === 'landscape',
+            })}
+          >
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              onLoadedMetadata={handleLoadedMetadata}
+              onTimeUpdate={handleTimeUpdate}
+              className={classNames({
+                // Size
+                'w-full': orientation === 'landscape',
+                'w-1/2 ml-auto mr-auto': orientation === 'portrait',
+
+                // Rotation simulation
+                'rotate-90': rotation === '90deg',
+                'rotate-180': rotation === '180deg',
+                'rotate-270': rotation === '270deg',
+
+                // whitespace changes when landscape video is rotated
+                'my-15 scale-90': ((rotation === '90deg' || rotation === '270deg') && orientation === 'landscape'),
+
+                // whitespace changes when portrait video is rotated
+                'scale-110': ((rotation === '90deg' || rotation === '270deg') && orientation === 'portrait'),
+              })}
+            />
+          </div>
 
           {duration > 0 && (
             <div className="flex flex-col gap-2">
@@ -355,6 +399,15 @@ export default function VideoEditor() {
               <span className="font-medium">Yes, remove audio</span>
             </label>
           </div>
+
+          {/* Rotate */}
+          <div>
+            <strong className="font-bold whitespace-nowrap">Rotate</strong>
+          </div>
+
+          <div className="col-span-2">
+            <RotationPicker selected={rotation} onChange={setRotation} />
+          </div>
         </div>
       ) : null}
 
@@ -472,6 +525,45 @@ export function EncoderPreferencePicker({
             `}
           >
             {level}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+const rotations: RotationOption[] = ['0deg', '90deg', '180deg', '270deg']
+const rotationStrings = {
+  '0deg': 'None',
+  '90deg': '90°',
+  '180deg': '180°',
+  '270deg': '270°',
+}
+
+export function RotationPicker({
+  selected,
+  onChange
+}: {
+  selected: RotationOption;
+  onChange: (rotation: RotationOption) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2 justify-end">
+      {rotations.map((rotation) => {
+        const isSelected = selected === rotation;
+        return (
+          <button
+            key={rotation}
+            onClick={() => onChange(rotation)}
+            className={`
+              px-3 py-1 cursor-pointer text-sm font-medium rounded-full transition-colors duration-200 border
+              ${isSelected
+                ? 'bg-cmyk-purple text-white border-cmyk-purple dark:bg-cmyk-blue dark:border-cmyk-blue'
+                : 'text-dark-300 border-dark-300 dark:text-light-300 dark:border-light-300 hover:text-cmyk-purple hover:border-cmyk-purple dark:hover:text-cmyk-blue dark:hover:border-cmyk-blue'
+              }
+            `}
+          >
+            {rotationStrings[rotation]}
           </button>
         );
       })}
