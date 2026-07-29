@@ -17,6 +17,7 @@
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Changelog](#changelog)
+  - [2026-07-28 – 🔄️ Rotate videos](#2026-07-28--️-rotate-videos)
   - [2026-07-26 – 📃 Rename file](#2026-07-26---rename-file)
   - [2026-07-21 – 🔇 Remove audio + 🐛 bug fixes](#2026-07-21---remove-audio---bug-fixes)
   - [2026-07-20 – 🚀 Initial release!](#2026-07-20---initial-release)
@@ -60,6 +61,11 @@ On Windows, dark mode:
 ![](./screenshot-light.png)
 
 ## Changelog
+
+### 2026-07-28 – 🔄️ Rotate videos
+
+- Add the ability to rotate the video
+
 
 ### 2026-07-26 – 📃 Rename file
 
